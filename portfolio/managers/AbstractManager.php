@@ -2,7 +2,7 @@
 abstract class AbstractManager{
     
     
-   protected PDO $db;
+   protected PDO $pdo;
 
     public function __construct()
     {
@@ -14,10 +14,10 @@ abstract class AbstractManager{
 
         $connexionString = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8";
 
-        $user = "barbaramase";
+        $user = "barbaramase_ia_portfolio";
         $password = "a00b6c174df6836deabe8330debe5e49";
 
-        $this->db = new PDO(
+        $this->pdo = new PDO(
             $connexionString,
             $user,
             $password

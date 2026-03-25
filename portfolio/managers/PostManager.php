@@ -1,4 +1,6 @@
 <?php
+
+//J'ai adapté la réponse de l'IA à ce que nous avons vu en cours
 class PostManager extends AbstractManager {
     
     public function __construct() {
@@ -6,9 +8,9 @@ class PostManager extends AbstractManager {
     }
     
     public function findOne(int $id): ?Post {
-        $stmt = $this->pdo->prepare('SELECT * FROM posts WHERE id = :id');
-        $stmt->execute([':id' => $id]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $query = $this->pdo->prepare('SELECT * FROM posts WHERE id = :id');
+        $query->execute([':id' => $id]);
+        $row = $query->fetch(\PDO::FETCH_ASSOC);
 
         if (!$row) {
             return null;
@@ -23,8 +25,8 @@ class PostManager extends AbstractManager {
     }
     
     public function findAll(): array {
-        $stmt = $this->pdo->query('SELECT * FROM posts');
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $query = $this->pdo->query('SELECT * FROM posts');
+        $rows = $query->fetchAll(\PDO::FETCH_ASSOC);
     
     
         //retourne un array contenant tous les posts
@@ -37,20 +39,23 @@ class PostManager extends AbstractManager {
     }
     
     public function create(Post $post): void {
-        $stmt = $this->pdo->prepare('
+        $query = $this->pdo->prepare('
             INSERT INTO posts (title, excerpt, content)
             VALUES (:title, :excerpt, :content)
         ');
 
-        $stmt->execute([
+        $query->execute([
             ':title'   => $post->getTitle(),
             ':excerpt' => $post->getExcerpt(),
             ':content' => $post->getContent(),
         ]);
+        
+         $id = $this->pdo->lastInsertId();
+         $post->setId($id);
     }
     
     public function update(Post $post): void {
-        $stmt = $this->pdo->prepare('
+        $query = $this->pdo->prepare('
             UPDATE posts
             SET title   = :title,
                 excerpt = :excerpt,
@@ -58,7 +63,11 @@ class PostManager extends AbstractManager {
             WHERE id = :id
         ');
 
-        $stmt->execute([
+        //Passe les paramètres directement au lieu de faire : 
+        //$parameters = [
+        //parametres ]
+        //$query -> execute($parameters)
+        $query->execute([
             ':title'   => $post->getTitle(),
             ':excerpt' => $post->getExcerpt(),
             ':content' => $post->getContent(),
@@ -67,7 +76,7 @@ class PostManager extends AbstractManager {
     }
     
     public function delete(int $id): void {
-        $stmt = $this->pdo->prepare('DELETE FROM posts WHERE id = :id');
-        $stmt->execute([':id' => $id]);
+        $query = $this->pdo->prepare('DELETE FROM posts WHERE id = :id');
+        $query->execute([':id' => $id]);
     }
 }

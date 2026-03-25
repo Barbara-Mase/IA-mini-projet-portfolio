@@ -1,4 +1,6 @@
 <?php
+
+//J'ai adapté la réponse de l'IA à ce que nous avons vu en cours
 class ProjectManager extends AbstractManager {
     
     public function __construct() {

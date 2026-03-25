@@ -2,6 +2,9 @@
 
 class Post
 {
+    
+    
+    
     public function __construct(
         private string $title,
         private string $excerpt,
