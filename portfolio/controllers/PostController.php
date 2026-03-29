@@ -1,9 +1,30 @@
 <?php
 
 class PostController extends AbstractController {
-    
-    public function __construct() {
-        parent::__construct();
+
+    public function details(): void {
+        $pm = new PostManager();
+
+        // Récupération et validation de l'id depuis l'URL
+        $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+
+        // Si l'id est manquant ou non entier
+        if (!$id) {
+            http_response_code(400);
+            throw new \Exception("L'identifiant du post est invalide.");
+        }
+
+        // Récupération du post en base
+        $post = $pm->findOne($id);
+
+        // Si aucun post ne correspond à cet id
+        if ($post === null) {
+            http_response_code(404);
+            throw new \Exception("Ce post n'existe pas.");
+        }
+
+        // Affichage du détail du post
+        $this->render('post/details', ['post' => $post]);
     }
     
     public function listPost() : void {

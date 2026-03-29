@@ -427,3 +427,155 @@ La structure est bonne dans l'ensemble, mais voici quelques points à corriger o
 - `create(Post $post): void`
 - `update(Post $post): void`
 - `delete(int $id): void`
+
+Etape :5 (PostController)
+
+//Si l'utilisateur est connecté
+        if({
+                $pm = new PostManager(); 
+                $post = $pm->findOne($id)
+        
+                //Si l'id existe 
+                if($post != null) {
+                    $title = $_POST["title"];
+                    $excerpt = $_POST["excerpt"];
+                    $content = $_POST["content"];
+                    $id = $_POST["id"];
+                    
+                    $post = new Post($title, $excerpt, $content, $id);
+                    
+                    $pm->update($post);
+                } 
+                //sinon  {
+                //envoyer un message qui dit que le poste n existe pas 
+                }
+        } 
+        //Sinon envoyer un message d'erreur qui dit que l'utilisateur n'est pas connecté}
+            
+        }
+
+Peux-tu corriger et compléter ce code dans le cadre de mon MVC ?
+
+Réponse : 
+
+```php
+<?php
+
+class PostController {
+
+    public function update(): void {
+        // Si l'utilisateur est connecté
+        if (!isset($_SESSION['user'])) {
+            http_response_code(403);
+            throw new \Exception("Vous devez être connecté pour modifier un post.");
+        }
+
+        // Récupération et validation de l'id depuis l'URL
+        $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+
+        if (!$id) {
+            http_response_code(400);
+            throw new \Exception("L'identifiant du post est invalide.");
+        }
+
+        // Vérification que le post existe
+        $pm   = new PostManager();
+        $post = $pm->findOne($id);
+
+        if ($post === null) {
+            http_response_code(404);
+            throw new \Exception("Ce post n'existe pas.");
+        }
+
+        // Récupération et nettoyage des données du formulaire
+        $title   = htmlspecialchars(trim($_POST['title']));
+        $content = htmlspecialchars(trim($_POST['content']));
+        $excerpt = htmlspecialchars(trim($_POST['excerpt']));
+
+        if (empty($title) || empty($content) || empty($excerpt)) {
+            http_response_code(400);
+            throw new \Exception("Tous les champs sont obligatoires.");
+        }
+
+        // Mise à jour du post
+        $post = new Post($title, $excerpt, $content, $id);
+        $pm->update($post);
+
+        // Redirection après succès
+        header('Location: /posts');
+        exit;
+    }
+}
+```
+
+Quelques points notables :
+
+- **`filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT)`** — plus sûr qu'un `$_GET['id']` brut, ça valide que l'id est bien un entier et évite les injections.
+- **`htmlspecialchars(trim(...))`** — nettoie les données du formulaire avant de les stocker.
+- **`http_response_code()`** — envoie le bon code HTTP selon l'erreur (403 non connecté, 404 post introuvable, 400 données invalides).
+- **`header('Location: /posts')`** — redirige après la mise à jour, ce qui suit le pattern **PRG** (Post/Redirect/Get) et évite la resoumission du formulaire si l'utilisateur rafraîchit la page.
+
+Etape 6 : Ajout de la fonction details() dans le postController
+
+```
+public function details(int $id) {
+    $pm = new PostManager();
+    
+
+    //Vérifier si l'id n'est pas malveillant
+    $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+
+
+    if (!$id) {
+        http_response_code(400);
+        throw new \Exception("L'identifiant du post est invalide.");
+    }
+
+    $post = $pm->findOne($id);
+
+    if($post !== null) {
+        $this->render('post/details', ["post" => $post]);
+    } else {
+        http_response_code(404);
+        throw new \Exception("L'identifiant du post est nul.");
+
+    }
+
+}
+```
+
+Peux-tu corriger et commenter ce code ?
+
+Réponse : 
+
+```php
+public function details(): void {
+    $pm = new PostManager();
+
+    // Récupération et validation de l'id depuis l'URL
+    $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+
+    // Si l'id est manquant ou non entier
+    if (!$id) {
+        http_response_code(400);
+        throw new \Exception("L'identifiant du post est invalide.");
+    }
+
+    // Récupération du post en base
+    $post = $pm->findOne($id);
+
+    // Si aucun post ne correspond à cet id
+    if ($post === null) {
+        http_response_code(404);
+        throw new \Exception("Ce post n'existe pas.");
+    }
+
+    // Affichage du détail du post
+    $this->render('post/details', ['post' => $post]);
+}
+```
+
+Les deux corrections apportées :
+
+- **Le paramètre `int $id`** a été supprimé — l'id est récupéré directement depuis `$_GET` via `filter_input()`, le paramètre était donc inutile et redondant.
+- **Le message de l'exception 404** a été corrigé : `"L'identifiant du post est nul"` n'était pas le bon message — c'est le **post** qui n'existe pas, pas l'id qui est nul.

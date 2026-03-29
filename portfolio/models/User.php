@@ -40,6 +40,7 @@ Class User
     public function verifyPassword(string $plainPassword): bool
     {
         return password_verify($plainPassword, $this->password);
+
     }
 
 }
